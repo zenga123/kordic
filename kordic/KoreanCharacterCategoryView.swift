@@ -17,12 +17,12 @@ struct KoreanCharacterCategoryView: View {
         HStack(spacing: 15) {
             // 한국어 문자 아이콘
             ZStack {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 54, height: 54)
                 
                 Text(koreanChar)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
             }
             

@@ -28,21 +28,14 @@ struct ContentView: View {
                 Text("Learn Korean")
                     .font(.system(size: 40, weight: .bold))
                     .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
-                    .padding(.bottom, 10)
+                    .padding(.top, -30) // 제목을 위로 올림
                 
                 // 캐릭터 이미지
-                ZStack {
-                    Circle()
-                        .fill(Color(red: 0.8, green: 0.9, blue: 1.0))
-                        .frame(width: 220, height: 220)
-                    
-                    // 이미지 직접 사용
-                    Image("korean_girl_character")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 180, height: 180)
-                }
-                .padding(.vertical, 10)
+                Image("korean_girl_character")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 220, height: 220)
+                    .padding(.vertical, 10)
                 
                 // 인사말 텍스트
                 Text("Hello!")
@@ -66,21 +59,22 @@ struct ContentView: View {
                         .padding()
                         .background(Color(red: 0.3, green: 0.5, blue: 0.9))
                         .cornerRadius(30)
-                        .padding(.horizontal, 50)
                 }
+                .padding(.horizontal)
                 .padding(.vertical, 10)
                 
                 // 학습 카테고리 목록
                 VStack(spacing: 15) {
-                    // Basics 1
+                        // Basics 1
                     LearningCategoryView(
                         icon: "speaker.wave.2.fill",
                         title: "Basics 1",
                         subtitle: "",
                         progress: "0/4",
                         isLocked: false,
-                        progressValue: 0.3
+                        progressValue: nil
                     )
+                    .padding(.bottom, 0)
                     
                     // Basics 2
                     LearningCategoryView(
@@ -91,6 +85,7 @@ struct ContentView: View {
                         isLocked: true,
                         progressValue: 0
                     )
+                    .padding(.bottom, 0)
                     
                     // Review Words
                     KoreanCharacterCategoryView(
@@ -98,6 +93,7 @@ struct ContentView: View {
                         subtitle: "Practice your vocabulary",
                         koreanChar: "가"
                     )
+                    .padding(.bottom, 0)
                     
                     // Quiz
                     QuizCategoryView(

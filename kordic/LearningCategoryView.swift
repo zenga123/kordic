@@ -41,22 +41,28 @@ struct LearningCategoryView: View {
                         .foregroundColor(.secondary)
                 }
                 
-                // 진행 상태 표시줄
-                if let progressValue = progressValue {
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 8)
-                                .cornerRadius(4)
-                            
-                            Rectangle()
-                                .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                                .frame(width: geometry.size.width * CGFloat(progressValue), height: 8)
-                                .cornerRadius(4)
-                        }
+                // 진행 상태 바 배경 (회색 선)
+                if !isLocked {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 6)
+                        .cornerRadius(3)
+                        .padding(.top, 4)
+                }
+                
+                // 진행 상태 표시줄 (파란색 부분)
+                if !isLocked && progressValue != nil && progressValue! > 0 {
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 6)
+                            .cornerRadius(3)
+                        
+                        Rectangle()
+                            .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
+                            .frame(width: 70, height: 6)
+                            .cornerRadius(3)
                     }
-                    .frame(height: 8)
                     .padding(.top, 4)
                 }
             }

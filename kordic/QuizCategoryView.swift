@@ -16,12 +16,12 @@ struct QuizCategoryView: View {
         HStack(spacing: 15) {
             // 퀴즈 아이콘
             ZStack {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 54, height: 54)
                 
                 Image(systemName: "questionmark")
-                    .font(.title2)
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
             }
             
