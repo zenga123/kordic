@@ -6,12 +6,27 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @State private var showSettings = false
     @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("selectedLanguage") private var selectedLanguage = "English"
+    @EnvironmentObject private var languageManager: LanguageManager
+    @State private var refreshID = UUID() // 강제 새로고침을 위한 ID
     
+    // 새로고침을 위한 구독 설정
     var body: some View {
+        RefreshableView(content: {
+            mainContent
+        }, refreshID: refreshID)
+        .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
+            // 언어가 변경될 때마다 뷰 새로고침
+            refreshID = UUID()
+        }
+    }
+    
+    var mainContent: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // 설정 아이콘
@@ -28,7 +43,7 @@ struct ContentView: View {
                 }
                 
                 // 앱 제목
-                Text("Learn Korean")
+                Text("Learn Korean".localized())
                     .font(.system(size: 40, weight: .bold))
                     .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
                     .padding(.top, -30) // 제목을 위로 올림
@@ -41,12 +56,12 @@ struct ContentView: View {
                     .padding(.vertical, 10)
                 
                 // 인사말 텍스트
-                Text("Hello!")
+                Text("Hello!".localized())
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
                 
                 // 계속 학습 메시지
-                Text("Continue learning Korean")
+                Text("Continue learning Korean".localized())
                     .font(.system(size: 24))
                     .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.5))
                 
@@ -54,7 +69,7 @@ struct ContentView: View {
                 Button(action: {
                     // 시작 기능 구현
                 }) {
-                    Text("Start")
+                    Text("Start".localized())
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -68,10 +83,10 @@ struct ContentView: View {
                 
                 // 학습 카테고리 목록
                 VStack(spacing: 15) {
-                        // Basics 1
+                    // Basics 1
                     LearningCategoryView(
                         icon: "speaker.wave.2.fill",
-                        title: "Basics 1",
+                        title: "Basics 1".localized(),
                         subtitle: "",
                         progress: "0/4",
                         isLocked: false,
@@ -82,7 +97,7 @@ struct ContentView: View {
                     // Basics 2
                     LearningCategoryView(
                         icon: "lock.fill",
-                        title: "Basics 2",
+                        title: "Basics 2".localized(),
                         subtitle: "",
                         progress: "",
                         isLocked: true,
@@ -92,16 +107,16 @@ struct ContentView: View {
                     
                     // Review Words
                     KoreanCharacterCategoryView(
-                        title: "Review Words",
-                        subtitle: "Practice your vocabulary",
+                        title: "Review Words".localized(),
+                        subtitle: "Practice your vocabulary".localized(),
                         koreanChar: "가"
                     )
                     .padding(.bottom, 0)
                     
                     // Quiz
                     QuizCategoryView(
-                        title: "Quiz",
-                        subtitle: "Test your knowledge"
+                        title: "Quiz".localized(),
+                        subtitle: "Test your knowledge".localized()
                     )
                 }
                 .padding(.horizontal)
@@ -118,6 +133,18 @@ struct ContentView: View {
     }
 }
 
+// 새로고침을 위한 래퍼 뷰
+struct RefreshableView<Content: View>: View {
+    let content: () -> Content
+    let refreshID: UUID
+    
+    var body: some View {
+        content()
+            .id(refreshID) // ID가 변경되면 뷰가 다시 로드됨
+    }
+}
+
 #Preview {
     ContentView()
+        .environmentObject(LanguageManager.shared)
 }
