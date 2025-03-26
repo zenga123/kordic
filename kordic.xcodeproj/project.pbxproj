@@ -14,6 +14,7 @@
 		101211D12D9439D800B6E784 /* LearningCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101211D02D9439D800B6E784 /* LearningCategoryView.swift */; };
 		101211D32D9439EE00B6E784 /* KoreanCharacterCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101211D22D9439EE00B6E784 /* KoreanCharacterCategoryView.swift */; };
 		101211D52D9439FE00B6E784 /* QuizCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101211D42D9439FE00B6E784 /* QuizCategoryView.swift */; };
+		101211D72D94410C00B6E784 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101211D62D94410B00B6E784 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		101211D02D9439D800B6E784 /* LearningCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningCategoryView.swift; sourceTree = "<group>"; };
 		101211D22D9439EE00B6E784 /* KoreanCharacterCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoreanCharacterCategoryView.swift; sourceTree = "<group>"; };
 		101211D42D9439FE00B6E784 /* QuizCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizCategoryView.swift; sourceTree = "<group>"; };
+		101211D62D94410B00B6E784 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 			children = (
 				101211C22D94330B00B6E784 /* kordicApp.swift */,
 				101211C42D94330B00B6E784 /* ContentView.swift */,
+				101211D62D94410B00B6E784 /* SettingsView.swift */,
 				101211D02D9439D800B6E784 /* LearningCategoryView.swift */,
 				101211D22D9439EE00B6E784 /* KoreanCharacterCategoryView.swift */,
 				101211D42D9439FE00B6E784 /* QuizCategoryView.swift */,
@@ -149,6 +152,7 @@
 				101211D12D9439D800B6E784 /* LearningCategoryView.swift in Sources */,
 				101211C52D94330B00B6E784 /* ContentView.swift in Sources */,
 				101211D32D9439EE00B6E784 /* KoreanCharacterCategoryView.swift in Sources */,
+				101211D72D94410C00B6E784 /* SettingsView.swift in Sources */,
 				101211C32D94330B00B6E784 /* kordicApp.swift in Sources */,
 				101211D52D9439FE00B6E784 /* QuizCategoryView.swift in Sources */,
 			);

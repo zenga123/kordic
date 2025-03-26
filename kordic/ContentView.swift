@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showSettings = false
+    @AppStorage("isDarkMode") private var isDarkMode = false
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -15,7 +18,7 @@ struct ContentView: View {
                 HStack {
                     Spacer()
                     Button(action: {
-                        // 설정 메뉴 열기
+                        showSettings = true
                     }) {
                         Image(systemName: "gearshape.fill")
                             .font(.title2)
@@ -106,8 +109,12 @@ struct ContentView: View {
                 Spacer(minLength: 20)
             }
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
         .background(Color(red: 0.98, green: 0.98, blue: 0.98))
         .edgesIgnoringSafeArea(.bottom)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
