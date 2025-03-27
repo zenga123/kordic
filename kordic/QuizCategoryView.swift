@@ -11,6 +11,7 @@ import SwiftUI
 struct QuizCategoryView: View {
     let title: String
     let subtitle: String
+    let isLocked: Bool
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -23,26 +24,38 @@ struct QuizCategoryView: View {
             // 퀴즈 아이콘
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
+                    .fill(isLocked ? Color.gray.opacity(0.3) : Color(red: 0.3, green: 0.5, blue: 0.9))
                     .frame(width: 54, height: 54)
                 
-                Image(systemName: "questionmark")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
+                if isLocked {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.gray)
+                } else {
+                    Image(systemName: "questionmark")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                }
             }
             
             // 제목과 부제목
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
+                    .foregroundColor(isLocked ? .gray : (isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3)))
                 
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isLocked ? .gray.opacity(0.8) : .secondary)
             }
             
             Spacer()
+            
+            // 잠금 아이콘
+            if isLocked {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(.gray)
+            }
         }
         .padding()
         .background(
@@ -59,7 +72,8 @@ struct QuizCategoryView: View {
 #Preview {
     QuizCategoryView(
         title: "Quiz",
-        subtitle: "Test your knowledge"
+        subtitle: "Test your knowledge",
+        isLocked: false
     )
     .padding()
 }

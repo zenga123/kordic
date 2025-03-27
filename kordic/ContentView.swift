@@ -83,10 +83,10 @@ struct ContentView: View {
                     )
                     .padding(.bottom, 0)
                     
-                    // Basics 2
+                    // Basics 1
                     LearningCategoryView(
                         icon: "lock.fill",
-                        title: "Basics 2".localized(),
+                        title: "Basics 1".localized(),
                         subtitle: "",
                         progress: "",
                         isLocked: true,
@@ -98,14 +98,16 @@ struct ContentView: View {
                     KoreanCharacterCategoryView(
                         title: "Review Words".localized(),
                         subtitle: "Practice your vocabulary".localized(),
-                        koreanChar: "가"
+                        koreanChar: "가",
+                        isLocked: true
                     )
                     .padding(.bottom, 0)
                     
                     // Quiz
                     QuizCategoryView(
                         title: "Quiz".localized(),
-                        subtitle: "Test your knowledge".localized()
+                        subtitle: "Test your knowledge".localized(),
+                        isLocked: true
                     )
                 }
                 .padding(.horizontal)
