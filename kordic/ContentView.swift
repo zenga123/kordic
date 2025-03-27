@@ -72,10 +72,10 @@ struct ContentView: View {
                 
                 // 학습 카테고리 목록
                 VStack(spacing: 15) {
-                    // Basics 1
+                    // Level Test
                     LearningCategoryView(
-                        icon: "speaker.wave.2.fill",
-                        title: "Basics 1".localized(),
+                        icon: "graduationcap.fill",
+                        title: "Level Test".localized(),
                         subtitle: "",
                         progress: "0/4",
                         isLocked: false,
