@@ -9,58 +9,63 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject private var languageManager: LanguageManager
+    @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     @AppStorage("isDarkMode") private var isDarkMode = false
-    @State private var refreshID = UUID() // 강제 새로고침을 위한 ID
     
     let languages = ["English", "日本語"]
+    var onLanguageChange: (() -> Void)? // 언어 변경 콜백
     
     var body: some View {
-        RefreshableView(content: {
-            NavigationView {
-                Form {
-                    Section(header: Text("Language Settings".localized())) {
-                        Picker("Select Language".localized(), selection: $languageManager.currentLanguage) {
-                            ForEach(languages, id: \.self) { language in
-                                Text(language).tag(language)
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-                        .onChange(of: languageManager.currentLanguage) { _ in
-                            // 언어가 변경될 때 뷰 새로고침
-                            refreshID = UUID()
+        NavigationView {
+            Form {
+                Section(header: Text("Language Settings".localized())) {
+                    Picker("Select Language".localized(), selection: $selectedLanguage) {
+                        ForEach(languages, id: \.self) { language in
+                            Text(language).tag(language)
                         }
                     }
-                    
-                    Section(header: Text("Display Settings".localized())) {
-                        Toggle("Dark Mode".localized(), isOn: $isDarkMode)
-                    }
-                    
-                    Section(header: Text("Information".localized())) {
-                        HStack {
-                            Text("App Version".localized())
-                            Spacer()
-                            Text("1.0.0")
-                                .foregroundColor(.gray)
+                    .pickerStyle(MenuPickerStyle())
+                    .onChange(of: selectedLanguage) { newValue in
+                        print("언어 변경됨: \(newValue)")
+                        
+                        // UserDefaults에 직접 저장 (확실하게)
+                        UserDefaults.standard.set(newValue, forKey: "selectedLanguage")
+                        UserDefaults.standard.synchronize()
+                        
+                        // 콜백 호출
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            onLanguageChange?()
                         }
                     }
                 }
-                .navigationTitle("Settings".localized())
-                .navigationBarItems(
-                    leading: Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.primary)
+                
+                Section(header: Text("Display Settings".localized())) {
+                    Toggle("Dark Mode".localized(), isOn: $isDarkMode)
+                }
+                
+                Section(header: Text("Information".localized())) {
+                    HStack {
+                        Text("App Version".localized())
+                        Spacer()
+                        Text("1.0.0")
+                            .foregroundColor(.gray)
                     }
-                )
+                }
             }
-            .preferredColorScheme(isDarkMode ? .dark : .light)
-        }, refreshID: refreshID)
+            .navigationTitle("Settings".localized())
+            .navigationBarItems(
+                leading: Button(action: {
+                    presentationMode.wrappedValue.dismiss()
+                }) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.primary)
+                }
+            )
+        }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
 #Preview {
-    SettingsView()
-        .environmentObject(LanguageManager.shared)
+    SettingsView(onLanguageChange: nil)
 }

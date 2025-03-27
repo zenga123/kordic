@@ -6,27 +6,14 @@
 //
 
 import SwiftUI
-import Combine
 
 struct ContentView: View {
     @State private var showSettings = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
-    @EnvironmentObject private var languageManager: LanguageManager
-    @State private var refreshID = UUID() // 강제 새로고침을 위한 ID
+    @State private var refreshID = UUID() // 화면 새로고침용 ID
     
-    // 새로고침을 위한 구독 설정
     var body: some View {
-        RefreshableView(content: {
-            mainContent
-        }, refreshID: refreshID)
-        .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
-            // 언어가 변경될 때마다 뷰 새로고침
-            refreshID = UUID()
-        }
-    }
-    
-    var mainContent: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // 설정 아이콘
@@ -37,7 +24,7 @@ struct ContentView: View {
                     }) {
                         Image(systemName: "gearshape.fill")
                             .font(.title2)
-                            .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
+                            .foregroundColor(.blue) // 항상 파란색으로 고정
                             .padding()
                     }
                 }
@@ -48,12 +35,14 @@ struct ContentView: View {
                     .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
                     .padding(.top, -30) // 제목을 위로 올림
                 
-                // 캐릭터 이미지
+                // 캐릭터 이미지 - 배경 제거
                 Image("korean_girl_character")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 220, height: 220)
                     .padding(.vertical, 10)
+                    .background(Color.clear) // 배경을 투명하게 설정
+                    .clipShape(Circle()) // 선택적: 원형으로 이미지를 자르기
                 
                 // 인사말 텍스트
                 Text("Hello!".localized())
@@ -124,8 +113,12 @@ struct ContentView: View {
                 Spacer(minLength: 20)
             }
         }
+        .id(refreshID) // 고유 ID를 통해 뷰를 새로고침
         .sheet(isPresented: $showSettings) {
-            SettingsView()
+            SettingsView(onLanguageChange: {
+                // 언어 변경 시 화면 새로고침
+                refreshID = UUID()
+            })
         }
         .background(isDarkMode ? Color.black : Color(red: 0.98, green: 0.98, blue: 0.98))
         .edgesIgnoringSafeArea(.bottom)
@@ -133,18 +126,6 @@ struct ContentView: View {
     }
 }
 
-// 새로고침을 위한 래퍼 뷰
-struct RefreshableView<Content: View>: View {
-    let content: () -> Content
-    let refreshID: UUID
-    
-    var body: some View {
-        content()
-            .id(refreshID) // ID가 변경되면 뷰가 다시 로드됨
-    }
-}
-
 #Preview {
     ContentView()
-        .environmentObject(LanguageManager.shared)
 }
