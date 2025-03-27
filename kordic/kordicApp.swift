@@ -12,7 +12,6 @@ extension String {
     func localized() -> String {
         // UserDefaults에서 선택된 언어 가져오기
         let language = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "English"
-        print("현재 선택된 언어: \(language)") // 디버깅용 출력
         
         let translations: [String: [String: String]] = [
             // English translations
@@ -33,7 +32,10 @@ extension String {
                 "Display Settings": "Display Settings",
                 "Dark Mode": "Dark Mode",
                 "Information": "Information",
-                "App Version": "App Version"
+                "App Version": "App Version",
+                "Complete Level Test to unlock Basics 1": "Complete Level Test to unlock Basics 1",
+                "Complete Level Test to unlock Review Words": "Complete Level Test to unlock Review Words",
+                "Complete Level Test to unlock Quiz": "Complete Level Test to unlock Quiz"
             ],
             // Japanese translations
             "日本語": [
@@ -53,7 +55,10 @@ extension String {
                 "Display Settings": "表示設定",
                 "Dark Mode": "ダークモード",
                 "Information": "情報",
-                "App Version": "アプリバージョン"
+                "App Version": "アプリバージョン",
+                "Complete Level Test to unlock Basics 1": "レベルテストを完了して基礎 1をアンロック",
+                "Complete Level Test to unlock Review Words": "レベルテストを完了して単語復習をアンロック",
+                "Complete Level Test to unlock Quiz": "レベルテストを完了してクイズをアンロック"
             ]
         ]
         
