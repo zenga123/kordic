@@ -45,7 +45,7 @@ struct ContentView: View {
                 // 앱 제목
                 Text("Learn Korean".localized())
                     .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
+                    .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
                     .padding(.top, -30) // 제목을 위로 올림
                 
                 // 캐릭터 이미지
@@ -58,12 +58,12 @@ struct ContentView: View {
                 // 인사말 텍스트
                 Text("Hello!".localized())
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
+                    .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
                 
                 // 계속 학습 메시지
                 Text("Continue learning Korean".localized())
                     .font(.system(size: 24))
-                    .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.5))
+                    .foregroundColor(isDarkMode ? Color.gray : Color(red: 0.4, green: 0.4, blue: 0.5))
                 
                 // 시작 버튼
                 Button(action: {
@@ -127,7 +127,7 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
-        .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+        .background(isDarkMode ? Color.black : Color(red: 0.98, green: 0.98, blue: 0.98))
         .edgesIgnoringSafeArea(.bottom)
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }

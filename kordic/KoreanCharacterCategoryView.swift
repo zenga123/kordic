@@ -13,6 +13,12 @@ struct KoreanCharacterCategoryView: View {
     let subtitle: String
     let koreanChar: String
     
+    @Environment(\.colorScheme) var colorScheme
+    
+    var isDarkMode: Bool {
+        return colorScheme == .dark
+    }
+    
     var body: some View {
         HStack(spacing: 15) {
             // 한국어 문자 아이콘
@@ -30,7 +36,7 @@ struct KoreanCharacterCategoryView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.3))
+                    .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
                 
                 Text(subtitle)
                     .font(.subheadline)
@@ -42,7 +48,7 @@ struct KoreanCharacterCategoryView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white)
+                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)

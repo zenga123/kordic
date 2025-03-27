@@ -16,6 +16,12 @@ struct LearningCategoryView: View {
     let isLocked: Bool  // 잠금 여부
     let progressValue: Float?  // 진행률 (0.0 ~ 1.0, nil이면 표시 안 함)
     
+    @Environment(\.colorScheme) var colorScheme
+    
+    var isDarkMode: Bool {
+        return colorScheme == .dark
+    }
+    
     var body: some View {
         HStack(spacing: 15) {
             // 아이콘
@@ -33,7 +39,7 @@ struct LearningCategoryView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(isLocked ? .gray : Color(red: 0.2, green: 0.2, blue: 0.3))
+                    .foregroundColor(isLocked ? .gray : (isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3)))
                 
                 if !subtitle.isEmpty {
                     Text(subtitle)
@@ -81,7 +87,7 @@ struct LearningCategoryView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white)
+                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
