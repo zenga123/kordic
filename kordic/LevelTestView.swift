@@ -35,30 +35,12 @@ struct LevelTestView: View {
                 .ignoresSafeArea()
             
             VStack {
-                HStack {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.primary)
-                            .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        // 설정 버튼 액션
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.secondary)
-                            .padding()
-                    }
-                }
+                // 상단 버튼 제거 (왼쪽 상단의 뒤로가기 버튼은 제거하고 기본 네비게이션 뒤로가기만 사용)
                 
                 Text("Level Test")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.top, 20)
+                    .padding(.top, 40)
                 
                 VStack(spacing: 40) {
                     if currentQuestionIndex < questions.count {
@@ -176,7 +158,13 @@ struct LevelTestView: View {
                 }
             }
         }
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                EmptyView()
+            }
+        }
     }
 }
 

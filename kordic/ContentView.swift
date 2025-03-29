@@ -77,19 +77,18 @@ struct ContentView: View {
                     // 학습 카테고리 목록
                     VStack(spacing: 15) {
                         // Level Test
-                        LearningCategoryView(
-                            icon: "graduationcap.fill",
-                            title: "Level Test".localized(),
-                            subtitle: "",
-                            progress: "0/4",
-                            isLocked: false,
-                            progressValue: nil
-                        )
-                        .padding(.bottom, 0)
-                        .background(
-                            NavigationLink("", destination: LevelTestView())
-                                .opacity(0)
-                        )
+                        NavigationLink(destination: LevelTestView()) {
+                            LearningCategoryView(
+                                icon: "graduationcap.fill",
+                                title: "Level Test".localized(),
+                                subtitle: "",
+                                progress: "0/4",
+                                isLocked: false,
+                                progressValue: nil
+                            )
+                            .padding(.bottom, 0)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         
                         // Basics 1
                         LearningCategoryView(
