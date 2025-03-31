@@ -70,8 +70,8 @@ struct LevelTestView: View {
     // MARK: - Computed Properties
     var progress: CGFloat {
         let total = CGFloat(questions.count)
-        // Ensure current index doesn't exceed total for progress calculation
-        let current = CGFloat(min(currentQuestionIndex + 1, questions.count))
+        // 0부터 시작하도록 수정: +1 제거
+        let current = CGFloat(min(currentQuestionIndex, questions.count))
         return total > 0 ? current / total : 0
     }
 
@@ -200,7 +200,7 @@ struct LevelTestView: View {
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.8)
 
-                        Text("\(min(currentQuestionIndex + 1, questions.count))/\(questions.count)")
+                        Text("\(currentQuestionIndex)/\(questions.count)")
                             .font(.headline)
                     }
                     .padding(.bottom, 40) // Bottom padding for the progress section
