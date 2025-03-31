@@ -53,10 +53,9 @@ struct LevelTestView: View {
 
     // --- Constants ---
     let questions = [
-        Question(text: "나( ) 밥을 먹었어요.", options: ["이", "가", "을", "는"], correctAnswer: 1, questionType: .fillInBlank),
+        Question(text: "나( ) 밥을 먹었어요.", options: ["이", "가", "을", "는"], correctAnswer: 3, questionType: .fillInBlank),
         Question(text: "'사과'는 무엇입니까?".localized(), options: ["Banana".localized(), "Apple".localized(), "Grape".localized(), "Watermelon".localized()], correctAnswer: 1, questionType: .translation),
-        Question(text: "학교( ) 갔어요.", options: ["이", "가", "을", "에"], correctAnswer: 3, questionType: .fillInBlank),
-        Question(text: "선생님( ) 말했어요.", options: ["이", "가", "께서", "을"], correctAnswer: 2, questionType: .fillInBlank)
+        Question(text: "다음 글을 읽고, 맞는 내용을 고르세요.".localized() + "\n민수는 오늘 도서관에 갔어요. 책을 다섯 권 빌렸습니다.", options: ["민수는 오늘 영화를 봤습니다.", "민수는 친구를 만났습니다.", "민수는 책을 빌렸습니다.", "민수는 도서관에서 일했습니다."], correctAnswer: 2, questionType: .fillInBlank)
     ]
 
     // --- Confetti Animation Constants ---
@@ -70,8 +69,8 @@ struct LevelTestView: View {
     // MARK: - Computed Properties
     var progress: CGFloat {
         let total = CGFloat(questions.count)
-        // Ensure current index doesn't exceed total for progress calculation
-        let current = CGFloat(min(currentQuestionIndex + 1, questions.count))
+        // 0부터 시작하도록 수정: +1 제거
+        let current = CGFloat(min(currentQuestionIndex, questions.count))
         return total > 0 ? current / total : 0
     }
 
@@ -200,7 +199,7 @@ struct LevelTestView: View {
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.8)
 
-                        Text("\(min(currentQuestionIndex + 1, questions.count))/\(questions.count)")
+                        Text("\(currentQuestionIndex)/\(questions.count)")
                             .font(.headline)
                     }
                     .padding(.bottom, 40) // Bottom padding for the progress section

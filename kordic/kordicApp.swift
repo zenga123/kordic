@@ -49,6 +49,7 @@ extension String {
                 "Don't worry! Practice makes perfect!": "Don't worry! Practice makes perfect!",
                 // 문제 번역
                 "'사과'는 무엇입니까?": "What is '사과'?",
+                "다음 글을 읽고, 맞는 내용을 고르세요.": "Read the following text and choose the correct statement.",
                 // 과일 번역
                 "Banana": "Banana",
                 "Apple": "Apple",
@@ -90,6 +91,7 @@ extension String {
                 "Don't worry! Practice makes perfect!": "心配しないで！練習が完璧を作ります！",
                 // 문제 번역
                 "'사과'는 무엇입니까?": "'사과'は何ですか？",
+                "다음 글을 읽고, 맞는 내용을 고르세요.": "次の文を読んで、正しい内容を選んでください。",
                 // 과일 번역
                 "Banana": "バナナ",
                 "Apple": "りんご",
