@@ -41,6 +41,7 @@ extension String {
                 "Test Completed": "Test Completed",
                 "Score: ": "Score: ",
                 "Start Again": "Start Again",
+                "Home": "Home",
                 
                 // 점수 메시지
                 "Excellent! You're a Korean language master!": "Excellent! You're a Korean language master!",
@@ -83,6 +84,7 @@ extension String {
                 "Test Completed": "テスト完了",
                 "Score: ": "スコア：",
                 "Start Again": "もう一度始める",
+                "Home": "ホーム",
                 
                 // 점수 메시지
                 "Excellent! You're a Korean language master!": "素晴らしい！あなたは韓国語のマスターです！",

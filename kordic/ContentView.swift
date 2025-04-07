@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
+    @AppStorage("levelTestCurrentQuestionIndex") private var levelTestProgress = 0
+    @AppStorage("levelTestScore") private var levelTestScore = 0
     @State private var refreshID = UUID() // 화면 새로고침용 ID
     @State private var showToast = false
     @State private var toastMessage = ""
@@ -82,9 +84,12 @@ struct ContentView: View {
                                 icon: "graduationcap.fill",
                                 title: "Level Test".localized(),
                                 subtitle: "",
-                                progress: "0/4",
+                                progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
                                 isLocked: false,
-                                progressValue: nil
+                                progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
+                                    1.0 : // 완료 시 강제로 1.0 (100%)으로 설정
+                                    (levelTestProgress > 0 ? 
+                                     Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
                             )
                             .padding(.bottom, 0)
                         }

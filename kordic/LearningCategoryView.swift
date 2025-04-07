@@ -49,25 +49,36 @@ struct LearningCategoryView: View {
                 
                 // 진행 상태 바 배경 (회색 선)
                 if !isLocked {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 6)
-                        .cornerRadius(3)
-                        .padding(.top, 4)
+                    // 진행 상태가 있을 때만 배경 표시줄 추가
+                    if progressValue == nil || progressValue! <= 0 {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 6)
+                            .cornerRadius(3)
+                            .padding(.top, 4)
+                    }
                 }
                 
                 // 진행 상태 표시줄 (파란색 부분)
                 if !isLocked && progressValue != nil && progressValue! > 0 {
                     ZStack(alignment: .leading) {
+                        // 배경 바
                         Rectangle()
                             .fill(Color.gray.opacity(0.2))
                             .frame(height: 6)
                             .cornerRadius(3)
                         
-                        Rectangle()
-                            .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                            .frame(width: 70, height: 6)
-                            .cornerRadius(3)
+                        // 실제 진행 바
+                        GeometryReader { geometry in
+                            Rectangle()
+                                .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
+                                .frame(width: progressValue! >= 0.99 ? 
+                                       geometry.size.width : // 완료 시 부모 너비 전체 사용
+                                       geometry.size.width * CGFloat(progressValue!), 
+                                       height: 6)
+                                .cornerRadius(3)
+                        }
+                        .frame(height: 6) // 높이 고정
                     }
                     .padding(.top, 4)
                 }

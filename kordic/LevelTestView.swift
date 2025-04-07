@@ -38,9 +38,9 @@ struct ConfettiParticle: Identifiable {
 
 struct LevelTestView: View {
     // MARK: - State Variables
-    @State private var currentQuestionIndex = 0
+    @AppStorage("levelTestCurrentQuestionIndex") private var currentQuestionIndex = 0
+    @AppStorage("levelTestScore") private var score = 0
     @State private var selectedAnswerIndex: Int? = nil
-    @State private var score = 0
     @Environment(\.presentationMode) var presentationMode
 
     // --- Confetti State ---
@@ -52,6 +52,8 @@ struct LevelTestView: View {
     @State private var cancellableTimer: Cancellable? = nil
 
     // --- Constants ---
+    static let totalQuestions = 3 // 테스트 총 문제 수 - 홈 화면에서 참조하기 위해 static으로 선언
+    
     let questions = [
         Question(text: "나( ) 밥을 먹었어요.", options: ["이", "가", "을", "는"], correctAnswer: 3, questionType: .fillInBlank),
         Question(text: "'사과'는 무엇입니까?".localized(), options: ["Banana".localized(), "Apple".localized(), "Grape".localized(), "Watermelon".localized()], correctAnswer: 1, questionType: .translation),
@@ -61,7 +63,7 @@ struct LevelTestView: View {
     // --- Confetti Animation Constants ---
     // Define burst origin once, assuming it's constant for the effect
     let burstOrigin = CGPoint(x: UIScreen.main.bounds.width / 2, y: 100)
-    // <<--- ADJUSTED DURATION FOR FASTER FALL --->>
+    // <<--- ADJUSTED DURATION FOR FASTER FALL --->>>
     let totalConfettiAnimationDuration = 3.0 // Further reduced duration
     let confettiBurstDuration = 0.3          // Duration of the initial explosion phase
 
@@ -140,14 +142,23 @@ struct LevelTestView: View {
                             .foregroundColor(.blue)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-
-                        Button(action: resetTest) {
-                            Text("Start Again".localized())
+                        
+                        // "홈으로" 버튼
+                        Button(action: {
+                            // 현재 진행 상황을 명시적으로 저장
+                            UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
+                            UserDefaults.standard.set(score, forKey: "levelTestScore")
+                            UserDefaults.standard.synchronize()
+                            
+                            // 홈으로 돌아가기
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Home".localized())
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding()
                                 .frame(maxWidth: .infinity)
-                                .background(Color.blue)
+                                .background(Color(red: 0.3, green: 0.5, blue: 0.9))
                                 .cornerRadius(10)
                                 .padding(.horizontal)
                         }
@@ -258,15 +269,22 @@ struct LevelTestView: View {
             // Check if correct
             if index == questions[currentQuestionIndex].correctAnswer {
                 score += 1
+                UserDefaults.standard.set(score, forKey: "levelTestScore")
             }
 
             // Move to next question or finish
             if !isLastQuestion {
                 currentQuestionIndex += 1
+                // 명시적으로 UserDefaults에 진행도 저장
+                UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
+                UserDefaults.standard.synchronize() // 즉시 저장 강제
                 selectedAnswerIndex = nil // Reset selection for the next question
             } else {
                 // Reached the end of the test
                 currentQuestionIndex = questions.count // Set index beyond bounds to show completion view
+                // 명시적으로 UserDefaults에 진행도 저장
+                UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
+                UserDefaults.standard.synchronize() // 즉시 저장 강제
                 selectedAnswerIndex = nil // Reset selection
                 showCompletionEffect = true // Set flag to trigger confetti
                 // Confetti will start via .onAppear of the completion view
@@ -278,6 +296,9 @@ struct LevelTestView: View {
     }
 
     func resetTest() {
+        // UserDefaults 값도 초기화
+        UserDefaults.standard.set(0, forKey: "levelTestCurrentQuestionIndex")
+        UserDefaults.standard.set(0, forKey: "levelTestScore")
         currentQuestionIndex = 0
         selectedAnswerIndex = nil
         score = 0
@@ -396,7 +417,7 @@ struct LevelTestView: View {
                 let linearFallProgress = min(max(0, fallTimeElapsed / fallDuration), 1.0)
 
                 // --- Vertical Position (Adjusted Fall Speed) ---
-                // <<--- CHANGE HERE: Increased factor for MUCH faster falling --->>
+                // <<--- CHANGE HERE: Increased factor for MUCH faster falling --->>>
                 let slowedFallTimeFactor = 0.7 // Higher value = faster fall. (Was 0.3, previously 0.1)
                                                // Try values closer to 1.0 for max speed.
                 let effectiveFallTime = fallTimeElapsed * slowedFallTimeFactor
