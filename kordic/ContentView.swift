@@ -287,6 +287,39 @@ struct ContentView: View {
                     isAnimating = true
                 }
             }
+            
+            // 레벨 테스트 완료 알림 수신 설정
+            NotificationCenter.default.addObserver(forName: NSNotification.Name("levelTestCompleted"), object: nil, queue: .main) { _ in
+                // 이미 애니메이션 중인지 확인
+                if !isAnimating && !unlockBasics {
+                    // 약간의 지연 시간 후 애니메이션 시작
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.easeInOut(duration: 1.2)) {
+                            moveTestDown = true
+                        }
+                        
+                        // 약간의 지연 후 잠금 해제 애니메이션
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
+                                unlockBasics = true
+                                levelTestCompleted = true
+                            }
+                            
+                            // 잠금 해제 메시지 표시
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                toastMessage = "Basics 1 is now unlocked!".localized()
+                                showToastMessage()
+                            }
+                        }
+                        
+                        isAnimating = true
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            // 화면이 사라질 때 옵저버 제거
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name("levelTestCompleted"), object: nil)
         }
     }
     
