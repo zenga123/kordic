@@ -63,7 +63,7 @@ struct LevelTestView: View {
     // --- Confetti Animation Constants ---
     // Define burst origin once, assuming it's constant for the effect
     let burstOrigin = CGPoint(x: UIScreen.main.bounds.width / 2, y: 100)
-    // <<--- ADJUSTED DURATION FOR FASTER FALL --->>>
+    // <<--- ADJUSTED DURATION FOR FASTER FALL --->>
     let totalConfettiAnimationDuration = 3.0 // Further reduced duration
     let confettiBurstDuration = 0.3          // Duration of the initial explosion phase
 
@@ -149,6 +149,10 @@ struct LevelTestView: View {
                             UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
                             UserDefaults.standard.set(score, forKey: "levelTestScore")
                             UserDefaults.standard.set(true, forKey: "levelTestCompleted") // 완료 상태 저장
+                            
+                            // 알림 센터를 통해 레벨 테스트 완료 이벤트 발송
+                            NotificationCenter.default.post(name: NSNotification.Name("levelTestCompleted"), object: nil)
+                            
                             UserDefaults.standard.synchronize() // 즉시 저장 강제
                             
                             // 홈으로 돌아가기
@@ -420,7 +424,7 @@ struct LevelTestView: View {
                 let linearFallProgress = min(max(0, fallTimeElapsed / fallDuration), 1.0)
 
                 // --- Vertical Position (Adjusted Fall Speed) ---
-                // <<--- CHANGE HERE: Increased factor for MUCH faster falling --->>>
+                // <<--- CHANGE HERE: Increased factor for MUCH faster falling --->>
                 let slowedFallTimeFactor = 0.7 // Higher value = faster fall. (Was 0.3, previously 0.1)
                                                // Try values closer to 1.0 for max speed.
                 let effectiveFallTime = fallTimeElapsed * slowedFallTimeFactor
