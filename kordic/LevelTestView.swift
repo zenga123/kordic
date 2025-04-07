@@ -148,7 +148,8 @@ struct LevelTestView: View {
                             // 현재 진행 상황을 명시적으로 저장
                             UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
                             UserDefaults.standard.set(score, forKey: "levelTestScore")
-                            UserDefaults.standard.synchronize()
+                            UserDefaults.standard.set(true, forKey: "levelTestCompleted") // 완료 상태 저장
+                            UserDefaults.standard.synchronize() // 즉시 저장 강제
                             
                             // 홈으로 돌아가기
                             presentationMode.wrappedValue.dismiss()
@@ -284,6 +285,8 @@ struct LevelTestView: View {
                 currentQuestionIndex = questions.count // Set index beyond bounds to show completion view
                 // 명시적으로 UserDefaults에 진행도 저장
                 UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
+                UserDefaults.standard.set(score, forKey: "levelTestScore")
+                UserDefaults.standard.set(true, forKey: "levelTestCompleted") // 완료 상태 저장
                 UserDefaults.standard.synchronize() // 즉시 저장 강제
                 selectedAnswerIndex = nil // Reset selection
                 showCompletionEffect = true // Set flag to trigger confetti

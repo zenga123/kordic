@@ -13,12 +13,18 @@ struct ContentView: View {
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     @AppStorage("levelTestCurrentQuestionIndex") private var levelTestProgress = 0
     @AppStorage("levelTestScore") private var levelTestScore = 0
+    @AppStorage("levelTestCompleted") private var levelTestCompleted = false
     @State private var refreshID = UUID() // 화면 새로고침용 ID
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var toastOffset: CGFloat = 100 // 토스트가 화면 바깥에 있게 시작
     @State private var toastWorkItem: DispatchWorkItem? // 토스트 타이머 참조를 저장
     @State private var showLevelTest = false // 레벨 테스트 화면 표시 여부
+    
+    // 애니메이션 상태 변수
+    @State private var isAnimating = false
+    @State private var moveTestDown = false
+    @State private var unlockBasics = false
     
     var body: some View {
         NavigationView {
@@ -78,63 +84,137 @@ struct ContentView: View {
                     
                     // 학습 카테고리 목록
                     VStack(spacing: 15) {
-                        // Level Test
-                        NavigationLink(destination: LevelTestView()) {
+                        // 카테고리 순서를 애니메이션으로 변경
+                        if moveTestDown {
+                            // Basics 1 (레벨 테스트 완료 시 잠금 해제)
                             LearningCategoryView(
-                                icon: "graduationcap.fill",
-                                title: "Level Test".localized(),
+                                icon: unlockBasics ? "book.fill" : "lock.fill",
+                                title: "Basics 1".localized(),
                                 subtitle: "",
-                                progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
-                                isLocked: false,
-                                progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
-                                    1.0 : // 완료 시 강제로 1.0 (100%)으로 설정
-                                    (levelTestProgress > 0 ? 
-                                     Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
+                                progress: "",
+                                isLocked: !unlockBasics,
+                                progressValue: 0
                             )
                             .padding(.bottom, 0)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Basics 1
-                        LearningCategoryView(
-                            icon: "lock.fill",
-                            title: "Basics 1".localized(),
-                            subtitle: "",
-                            progress: "",
-                            isLocked: true,
-                            progressValue: 0
-                        )
-                        .padding(.bottom, 0)
-                        .onTapGesture {
-                            toastMessage = "Complete Level Test to unlock Basics 1".localized()
-                            showToastMessage()
-                        }
-                        
-                        // Review Words
-                        KoreanCharacterCategoryView(
-                            title: "Review Words".localized(),
-                            subtitle: "Practice your vocabulary".localized(),
-                            koreanChar: "가",
-                            isLocked: true
-                        )
-                        .padding(.bottom, 0)
-                        .onTapGesture {
-                            toastMessage = "Complete Level Test to unlock Review Words".localized()
-                            showToastMessage()
-                        }
-                        
-                        // Quiz
-                        QuizCategoryView(
-                            title: "Quiz".localized(),
-                            subtitle: "Test your knowledge".localized(),
-                            isLocked: true
-                        )
-                        .onTapGesture {
-                            toastMessage = "Complete Level Test to unlock Quiz".localized()
-                            showToastMessage()
+                            .id("basics1") // 식별자 추가
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity).animation(.spring(response: 0.6, dampingFraction: 0.7)),
+                                removal: .opacity.animation(.easeOut)
+                            ))
+                            .onTapGesture {
+                                if !unlockBasics {
+                                    toastMessage = "Complete Level Test to unlock Basics 1".localized()
+                                    showToastMessage()
+                                }
+                            }
+                            .scaleEffect(unlockBasics ? 1.0 : 0.95)
+                            .shadow(color: unlockBasics ? Color.blue.opacity(0.3) : Color.clear, radius: unlockBasics ? 10 : 0)
+                            
+                            // Review Words
+                            KoreanCharacterCategoryView(
+                                title: "Review Words".localized(),
+                                subtitle: "Practice your vocabulary".localized(),
+                                koreanChar: "가",
+                                isLocked: true
+                            )
+                            .padding(.bottom, 0)
+                            .onTapGesture {
+                                toastMessage = "Complete Level Test to unlock Review Words".localized()
+                                showToastMessage()
+                            }
+                            
+                            // Quiz
+                            QuizCategoryView(
+                                title: "Quiz".localized(),
+                                subtitle: "Test your knowledge".localized(),
+                                isLocked: true
+                            )
+                            .onTapGesture {
+                                toastMessage = "Complete Level Test to unlock Quiz".localized()
+                                showToastMessage()
+                            }
+                            
+                            // Level Test (이제 가장 아래로)
+                            NavigationLink(destination: LevelTestView()) {
+                                LearningCategoryView(
+                                    icon: "graduationcap.fill",
+                                    title: "Level Test".localized(),
+                                    subtitle: "",
+                                    progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
+                                    isLocked: false,
+                                    progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
+                                        1.0 : 
+                                        (levelTestProgress > 0 ? 
+                                         Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
+                                )
+                                .padding(.bottom, 0)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .id("leveltest-bottom") // 식별자 추가
+                            .transition(.move(edge: .bottom))
+                        } else {
+                            // 기존 순서 (레벨 테스트가 맨 위)
+                            // Level Test
+                            NavigationLink(destination: LevelTestView()) {
+                                LearningCategoryView(
+                                    icon: "graduationcap.fill",
+                                    title: "Level Test".localized(),
+                                    subtitle: "",
+                                    progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
+                                    isLocked: false,
+                                    progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
+                                        1.0 : 
+                                        (levelTestProgress > 0 ? 
+                                         Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
+                                )
+                                .padding(.bottom, 0)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .id("leveltest-top") // 식별자 추가
+                            
+                            // Basics 1
+                            LearningCategoryView(
+                                icon: "lock.fill",
+                                title: "Basics 1".localized(),
+                                subtitle: "",
+                                progress: "",
+                                isLocked: true,
+                                progressValue: 0
+                            )
+                            .padding(.bottom, 0)
+                            .onTapGesture {
+                                toastMessage = "Complete Level Test to unlock Basics 1".localized()
+                                showToastMessage()
+                            }
+                            
+                            // Review Words
+                            KoreanCharacterCategoryView(
+                                title: "Review Words".localized(),
+                                subtitle: "Practice your vocabulary".localized(),
+                                koreanChar: "가",
+                                isLocked: true
+                            )
+                            .padding(.bottom, 0)
+                            .onTapGesture {
+                                toastMessage = "Complete Level Test to unlock Review Words".localized()
+                                showToastMessage()
+                            }
+                            
+                            // Quiz
+                            QuizCategoryView(
+                                title: "Quiz".localized(),
+                                subtitle: "Test your knowledge".localized(),
+                                isLocked: true
+                            )
+                            .onTapGesture {
+                                toastMessage = "Complete Level Test to unlock Quiz".localized()
+                                showToastMessage()
+                            }
                         }
                     }
                     .padding(.horizontal)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: moveTestDown)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.6), value: unlockBasics)
                     
                     Spacer(minLength: 20)
                 }
@@ -181,6 +261,33 @@ struct ContentView: View {
             )
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .onAppear {
+            // 테스트가 완료되었지만 아직 애니메이션을 보여주지 않았다면
+            if levelTestProgress >= LevelTestView.totalQuestions && !isAnimating && !unlockBasics {
+                // 약간의 지연 시간 후 애니메이션 시작
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.easeInOut(duration: 1.2)) {
+                        moveTestDown = true
+                    }
+                    
+                    // 약간의 지연 후 잠금 해제 애니메이션
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
+                            unlockBasics = true
+                            levelTestCompleted = true
+                        }
+                        
+                        // 잠금 해제 메시지 표시
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            toastMessage = "Basics 1 is now unlocked!".localized()
+                            showToastMessage()
+                        }
+                    }
+                    
+                    isAnimating = true
+                }
+            }
+        }
     }
     
     // 토스트 메시지 표시 함수

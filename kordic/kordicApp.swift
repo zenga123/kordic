@@ -42,6 +42,7 @@ extension String {
                 "Score: ": "Score: ",
                 "Start Again": "Start Again",
                 "Home": "Home",
+                "Basics 1 is now unlocked!": "Basics 1 is now unlocked!",
                 
                 // 점수 메시지
                 "Excellent! You're a Korean language master!": "Excellent! You're a Korean language master!",
@@ -85,6 +86,7 @@ extension String {
                 "Score: ": "スコア：",
                 "Start Again": "もう一度始める",
                 "Home": "ホーム",
+                "Basics 1 is now unlocked!": "基礎 1がアンロックされました！",
                 
                 // 점수 메시지
                 "Excellent! You're a Korean language master!": "素晴らしい！あなたは韓国語のマスターです！",
