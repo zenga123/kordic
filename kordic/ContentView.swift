@@ -23,8 +23,12 @@ struct ContentView: View {
     
     // 애니메이션 상태 변수
     @State private var isAnimating = false
-    @State private var moveTestDown = false
-    @State private var unlockBasics = false
+    @AppStorage("moveTestDown") private var moveTestDown = false
+    @AppStorage("unlockBasics") private var unlockBasics = false
+    
+    // 레벨 배지 관련 변수 
+    @AppStorage("userLevel") private var userLevel = 0
+    @State private var showLevelBadge = false
     
     var body: some View {
         NavigationView {
@@ -49,14 +53,30 @@ struct ContentView: View {
                         .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
                         .padding(.top, -30) // 제목을 위로 올림
                     
-                    // 캐릭터 이미지 - 배경 제거
-                    Image("korean_girl_character")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 220, height: 220)
-                        .padding(.vertical, 10)
-                        .background(Color.clear) // 배경을 투명하게 설정
-                        .clipShape(Circle()) // 선택적: 원형으로 이미지를 자르기
+                    // 캐릭터 이미지와 레벨 배지
+                    ZStack(alignment: .topTrailing) {
+                        // 캐릭터 이미지 - 배경 제거
+                        Image("korean_girl_character")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 220, height: 220)
+                            .padding(.vertical, 10)
+                            .background(Color.clear) // 배경을 투명하게 설정
+                            .clipShape(Circle()) // 선택적: 원형으로 이미지를 자르기
+                        
+                        // 레벨 테스트가 완료되면 레벨 배지 표시
+                        if levelTestCompleted && userLevel > 0 {
+                            Image("level_badge_\(userLevel)")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 75, height: 75)
+                                .offset(x: 10, y: 20)
+                                .transition(.scale.combined(with: .opacity))
+                                .scaleEffect(showLevelBadge ? 1.0 : 0.1)
+                                .opacity(showLevelBadge ? 1.0 : 0)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.5), value: showLevelBadge)
+                        }
+                    }
                     
                     // 인사말 텍스트
                     Text("Hello!".localized())
@@ -262,8 +282,13 @@ struct ContentView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
+            // 이미 Basics1이 잠금 해제되었다면, moveTestDown도 true로 설정해야 함
+            if unlockBasics && !moveTestDown {
+                moveTestDown = true
+            }
+            
             // 테스트가 완료되었지만 아직 애니메이션을 보여주지 않았다면
-            if levelTestProgress >= LevelTestView.totalQuestions && !isAnimating && !unlockBasics {
+            if levelTestProgress >= LevelTestView.totalQuestions && !isAnimating && !unlockBasics && !moveTestDown {
                 // 약간의 지연 시간 후 애니메이션 시작
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     withAnimation(.easeInOut(duration: 1.2)) {
@@ -275,6 +300,22 @@ struct ContentView: View {
                         withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
                             unlockBasics = true
                             levelTestCompleted = true
+                            
+                            // 레벨 설정 (점수에 따라)
+                            if levelTestScore == LevelTestView.totalQuestions {
+                                userLevel = 3 // 만점이면 레벨 3
+                            } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
+                                userLevel = 2 // 2/3 이상이면 레벨 2
+                            } else {
+                                userLevel = 1 // 기본 레벨 1
+                            }
+                            
+                            // 배지 표시 애니메이션 활성화
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                withAnimation {
+                                    showLevelBadge = true
+                                }
+                            }
                         }
                         
                         // 잠금 해제 메시지 표시
@@ -286,12 +327,19 @@ struct ContentView: View {
                     
                     isAnimating = true
                 }
+            } else if levelTestCompleted && !showLevelBadge {
+                // 이미 테스트가 완료되었고 배지가 표시되지 않은 경우 즉시 표시
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation {
+                        showLevelBadge = true
+                    }
+                }
             }
             
             // 레벨 테스트 완료 알림 수신 설정
             NotificationCenter.default.addObserver(forName: NSNotification.Name("levelTestCompleted"), object: nil, queue: .main) { _ in
                 // 이미 애니메이션 중인지 확인
-                if !isAnimating && !unlockBasics {
+                if !isAnimating && !unlockBasics && !moveTestDown {
                     // 약간의 지연 시간 후 애니메이션 시작
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.easeInOut(duration: 1.2)) {
@@ -303,6 +351,22 @@ struct ContentView: View {
                             withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
                                 unlockBasics = true
                                 levelTestCompleted = true
+                                
+                                // 레벨 설정 (점수에 따라)
+                                if levelTestScore == LevelTestView.totalQuestions {
+                                    userLevel = 3 // 만점이면 레벨 3
+                                } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
+                                    userLevel = 2 // 2/3 이상이면 레벨 2
+                                } else {
+                                    userLevel = 1 // 기본 레벨 1
+                                }
+                                
+                                // 배지 표시 애니메이션 활성화
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    withAnimation {
+                                        showLevelBadge = true
+                                    }
+                                }
                             }
                             
                             // 잠금 해제 메시지 표시
