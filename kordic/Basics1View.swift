@@ -209,8 +209,9 @@ struct Basics1View: View {
     struct ModuleLessonView: View {
         let moduleTitle: String
         
-        // 샘플 데이터
+        // 샘플 데이터 - 첫 번째 요소로 시작 화면 추가
         let words = [
+            ("시작합니다", "Let's start", "start_image"),
             ("안녕하세요", "Hello", "greeting_image"),
             ("감사합니다", "Thank you", "thankyou_image"),
             ("네", "Yes", "yes_image")
@@ -240,8 +241,8 @@ struct Basics1View: View {
                     
                     Spacer()
                     
-                    // 진행 카운터
-                    Text("\(currentIndex + 1)/\(words.count)")
+                    // 진행 카운터 (0/3부터 시작)
+                    Text("\(currentIndex)/\(words.count - 1)")
                         .foregroundColor(.gray)
                 }
                 .padding(.horizontal)
@@ -254,33 +255,60 @@ struct Basics1View: View {
                         .frame(height: 6)
                         .cornerRadius(3)
                     
-                    // 진행 바 표시 로직
-                    if currentIndex > 0 {
-                        Rectangle()
-                            .fill(Color.blue)
-                            .frame(width: currentIndex == words.count - 1 ? 
-                                   // 마지막 단어일 경우 100% 채우기
-                                   UIScreen.main.bounds.width - 32 : // 양쪽 패딩 16씩 고려
-                                   // 그 외의 경우 비율에 맞게 채우기
-                                   UIScreen.main.bounds.width * CGFloat(Float(currentIndex) / Float(words.count)),
-                                   height: 6)
-                            .cornerRadius(3)
-                    }
+                    // 진행 바 표시 로직 (0%부터 시작)
+                    Rectangle()
+                        .fill(Color.blue)
+                        .frame(width: currentIndex == words.count - 1 ? 
+                               // 마지막 단어일 경우 100% 채우기
+                               UIScreen.main.bounds.width - 32 : // 양쪽 패딩 16씩 고려
+                               // 그 외의 경우 비율에 맞게 채우기 (0부터 시작)
+                               UIScreen.main.bounds.width * CGFloat(Float(currentIndex) / Float(words.count - 1)),
+                               height: 6)
+                        .cornerRadius(3)
+                        .opacity(currentIndex > 0 ? 1 : 0) // 0/3일 때는 보이지 않음
                 }
                 .padding(.horizontal)
                 .animation(.spring(response: 0.6, dampingFraction: 0.7), value: currentIndex)
                 
                 Spacer()
                 
-                // 현재 단어 카드
+                // 현재 단어 카드 또는 시작 화면
                 if !words.isEmpty && currentIndex < words.count {
-                    WordCardView(
-                        koreanWord: words[currentIndex].0,
-                        translation: words[currentIndex].1,
-                        image: words[currentIndex].2
-                    )
-                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                    .id("card-\(currentIndex)") // 애니메이션을 위한 고유 ID
+                    if currentIndex == 0 {
+                        // 시작 화면일 때 간단한 안내 표시
+                        VStack(spacing: 20) {
+                            Image(systemName: "play.circle")
+                                .font(.system(size: 60))
+                                .foregroundColor(.blue)
+                            
+                            Text("시작하기")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Text("오른쪽 버튼을 눌러 학습을 시작하세요.")
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
+                                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        )
+                        .padding(.horizontal)
+                    } else {
+                        // 실제 단어 카드 표시 (currentIndex가 1 이상일 때)
+                        WordCardView(
+                            koreanWord: words[currentIndex].0,
+                            translation: words[currentIndex].1,
+                            image: words[currentIndex].2
+                        )
+                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                        .id("card-\(currentIndex)") // 애니메이션을 위한 고유 ID
+                    }
                 }
                 
                 Spacer()
