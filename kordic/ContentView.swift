@@ -107,20 +107,24 @@ struct ContentView: View {
                         // 카테고리 순서를 애니메이션으로 변경
                         if moveTestDown {
                             // Basics 1 (레벨 테스트 완료 시 잠금 해제)
-                            LearningCategoryView(
-                                icon: unlockBasics ? "book.fill" : "lock.fill",
-                                title: "Basics 1".localized(),
-                                subtitle: "",
-                                progress: "",
-                                isLocked: !unlockBasics,
-                                progressValue: 0
-                            )
-                            .padding(.bottom, 0)
-                            .id("basics1") // 식별자 추가
-                            .transition(.asymmetric(
-                                insertion: .scale.combined(with: .opacity).animation(.spring(response: 0.6, dampingFraction: 0.7)),
-                                removal: .opacity.animation(.easeOut)
-                            ))
+                            NavigationLink(destination: Basics1View()) {
+                                LearningCategoryView(
+                                    icon: unlockBasics ? "book.fill" : "lock.fill",
+                                    title: "Basics 1".localized(),
+                                    subtitle: "",
+                                    progress: "",
+                                    isLocked: !unlockBasics,
+                                    progressValue: 0
+                                )
+                                .padding(.bottom, 0)
+                                .id("basics1") // 식별자 추가
+                                .transition(.asymmetric(
+                                    insertion: .scale.combined(with: .opacity).animation(.spring(response: 0.6, dampingFraction: 0.7)),
+                                    removal: .opacity.animation(.easeOut)
+                                ))
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .disabled(!unlockBasics)
                             .onTapGesture {
                                 if !unlockBasics {
                                     toastMessage = "Complete Level Test to unlock Basics 1".localized()
@@ -193,15 +197,19 @@ struct ContentView: View {
                             .id("leveltest-top") // 식별자 추가
                             
                             // Basics 1
-                            LearningCategoryView(
-                                icon: "lock.fill",
-                                title: "Basics 1".localized(),
-                                subtitle: "",
-                                progress: "",
-                                isLocked: true,
-                                progressValue: 0
-                            )
-                            .padding(.bottom, 0)
+                            NavigationLink(destination: Basics1View()) {
+                                LearningCategoryView(
+                                    icon: "lock.fill",
+                                    title: "Basics 1".localized(),
+                                    subtitle: "",
+                                    progress: "",
+                                    isLocked: true,
+                                    progressValue: 0
+                                )
+                                .padding(.bottom, 0)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .disabled(true)
                             .onTapGesture {
                                 toastMessage = "Complete Level Test to unlock Basics 1".localized()
                                 showToastMessage()
