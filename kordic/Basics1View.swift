@@ -254,11 +254,16 @@ struct Basics1View: View {
                         .frame(height: 6)
                         .cornerRadius(3)
                     
-                    // currentIndex가 0보다 큰 경우에만 진행 바 표시
+                    // 진행 바 표시 로직
                     if currentIndex > 0 {
                         Rectangle()
                             .fill(Color.blue)
-                            .frame(width: UIScreen.main.bounds.width * CGFloat(Float(currentIndex) / Float(words.count)), height: 6)
+                            .frame(width: currentIndex == words.count - 1 ? 
+                                   // 마지막 단어일 경우 100% 채우기
+                                   UIScreen.main.bounds.width - 32 : // 양쪽 패딩 16씩 고려
+                                   // 그 외의 경우 비율에 맞게 채우기
+                                   UIScreen.main.bounds.width * CGFloat(Float(currentIndex) / Float(words.count)),
+                                   height: 6)
                             .cornerRadius(3)
                     }
                 }
