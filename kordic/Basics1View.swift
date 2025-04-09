@@ -254,10 +254,13 @@ struct Basics1View: View {
                         .frame(height: 6)
                         .cornerRadius(3)
                     
-                    Rectangle()
-                        .fill(Color.blue)
-                        .frame(width: UIScreen.main.bounds.width * CGFloat(Float(currentIndex + 1) / Float(words.count)), height: 6)
-                        .cornerRadius(3)
+                    // currentIndex가 0보다 큰 경우에만 진행 바 표시
+                    if currentIndex > 0 {
+                        Rectangle()
+                            .fill(Color.blue)
+                            .frame(width: UIScreen.main.bounds.width * CGFloat(Float(currentIndex) / Float(words.count)), height: 6)
+                            .cornerRadius(3)
+                    }
                 }
                 .padding(.horizontal)
                 .animation(.spring(response: 0.6, dampingFraction: 0.7), value: currentIndex)
