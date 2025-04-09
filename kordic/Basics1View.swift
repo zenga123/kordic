@@ -71,17 +71,19 @@ struct Basics1View: View {
                                     .frame(height: 6)
                                     .cornerRadius(3)
                                 
-                                // 실제 진행 바
-                                GeometryReader { geometry in
-                                    Rectangle()
-                                        .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                                        .frame(width: module.progress >= 0.99 ?
-                                               geometry.size.width : // 완료 시 부모 너비 전체 사용
-                                               geometry.size.width * CGFloat(module.progress),
-                                               height: 6)
-                                        .cornerRadius(3)
+                                // 실제 진행 바 - progress가 0보다 큰 경우에만 표시
+                                if module.progress > 0 {
+                                    GeometryReader { geometry in
+                                        Rectangle()
+                                            .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
+                                            .frame(width: module.progress >= 0.99 ?
+                                                   geometry.size.width : // 완료 시 부모 너비 전체 사용
+                                                   geometry.size.width * CGFloat(module.progress),
+                                                   height: 6)
+                                            .cornerRadius(3)
+                                    }
+                                    .frame(height: 6) // 높이 고정
                                 }
-                                .frame(height: 6) // 높이 고정
                             }
                             .padding(.top, 4)
                         }
