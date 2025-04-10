@@ -218,6 +218,7 @@ struct Basics1View: View {
         ]
         
         @State private var currentIndex = 0
+        @State private var slideFromRight = true // true이면 오른쪽에서 왼쪽으로, false이면 왼쪽에서 오른쪽으로
         @Environment(\.presentationMode) var presentationMode
         @AppStorage("isDarkMode") private var isDarkMode = false
         
@@ -306,7 +307,10 @@ struct Basics1View: View {
                             translation: words[currentIndex].1,
                             image: words[currentIndex].2
                         )
-                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: slideFromRight ? .trailing : .leading),
+                            removal: .move(edge: slideFromRight ? .leading : .trailing)
+                        ))
                         .id("card-\(currentIndex)") // 애니메이션을 위한 고유 ID
                     }
                 }
@@ -318,6 +322,7 @@ struct Basics1View: View {
                     // 이전 버튼
                     Button(action: {
                         if currentIndex > 0 {
+                            slideFromRight = false // 이전 페이지가 왼쪽에서 들어오고, 현재 페이지는 오른쪽으로 나감
                             withAnimation {
                                 currentIndex -= 1
                             }
@@ -332,6 +337,7 @@ struct Basics1View: View {
                     // 다음 버튼
                     Button(action: {
                         if currentIndex < words.count - 1 {
+                            slideFromRight = true // 다음 페이지가 오른쪽에서 들어오고, 현재 페이지는 왼쪽으로 나감
                             withAnimation {
                                 currentIndex += 1
                             }
