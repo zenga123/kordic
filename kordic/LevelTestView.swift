@@ -49,7 +49,7 @@ struct LevelTestView: View {
     
     // --- 애니메이션 관련 State 변수 추가 ---
     @State private var isAnimatingOut = false
-    @State private var animateComplete = false
+    @State private var itemOffsets: [CGFloat] = [0, 0, 0, 0, 0]
 
     // --- Animation Timer ---
     @State private var animationTimer: Timer.TimerPublisher = Timer.publish(every: 1/60, on: .main, in: .common)
@@ -98,8 +98,6 @@ struct LevelTestView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
                     .padding(.bottom, 40) // Add space below title
-                    .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                    .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.0) : .none, value: isAnimatingOut)
 
                 // --- Main Content Area ---
                 if currentQuestionIndex < questions.count {
@@ -139,26 +137,26 @@ struct LevelTestView: View {
                         Text("Test Completed".localized())
                             .font(.title)
                             .fontWeight(.bold)
-                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.1) : .none, value: isAnimatingOut)
+                            .offset(y: itemOffsets[0])
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.0), value: itemOffsets[0])
 
                         Text("Score: \(score)/\(questions.count)".localized())
                             .font(.title2)
-                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.2) : .none, value: isAnimatingOut)
+                            .offset(y: itemOffsets[1])
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: itemOffsets[1])
 
                         Text(getScoreMessage())
                             .font(.headline)
                             .foregroundColor(.blue)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.3) : .none, value: isAnimatingOut)
+                            .offset(y: itemOffsets[2])
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: itemOffsets[2])
                         
                         // "홈으로" 버튼
                         Button(action: {
-                            // 애니메이션 트리거
-                            isAnimatingOut = true
+                            // 애니메이션 실행
+                            startCascadingAnimation()
                             
                             // 현재 진행 상황을 명시적으로 저장
                             UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
@@ -182,10 +180,9 @@ struct LevelTestView: View {
                             UserDefaults.standard.synchronize() // 즉시 저장 강제
                             
                             // 애니메이션이 완료된 후 홈으로 돌아가기
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                                // 레벨테스트 화면만 닫히도록 수정
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                 presentationMode.wrappedValue.dismiss()
-                                isAnimatingOut = false // 상태 초기화
+                                resetAnimation() // 상태 초기화
                             }
                         }) {
                             Text("Home".localized())
@@ -197,8 +194,8 @@ struct LevelTestView: View {
                                 .cornerRadius(10)
                                 .padding(.horizontal)
                         }
-                        .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                        .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.4) : .none, value: isAnimatingOut)
+                        .offset(y: itemOffsets[3])
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: itemOffsets[3])
                     }
                     .padding()
                     .onAppear {
@@ -251,8 +248,8 @@ struct LevelTestView: View {
                             .font(.headline)
                     }
                     .padding(.bottom, 40) // Bottom padding for the progress section
-                    .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
-                    .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.5) : .none, value: isAnimatingOut)
+                    .offset(y: itemOffsets[4])
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.4), value: itemOffsets[4])
                 }
             } // End Main VStack
         } // End ZStack
@@ -267,7 +264,27 @@ struct LevelTestView: View {
             stopAnimationTimer()
             
             // 화면이 사라질 때 애니메이션 상태 초기화
-            isAnimatingOut = false
+            resetAnimation()
+        }
+    }
+
+    // MARK: - Animation Functions
+    
+    // 캐스케이딩 애니메이션 시작
+    func startCascadingAnimation() {
+        let screenHeight = UIScreen.main.bounds.height * 0.1
+        
+        // 애니메이션 순차 실행
+        for i in 0..<itemOffsets.count {
+            let verticalOffset = screenHeight * CGFloat(i + 1)
+            itemOffsets[i] = verticalOffset
+        }
+    }
+    
+    // 애니메이션 상태 초기화
+    func resetAnimation() {
+        for i in 0..<itemOffsets.count {
+            itemOffsets[i] = 0
         }
     }
 
@@ -349,6 +366,7 @@ struct LevelTestView: View {
         confetti = [] // Clear any remaining confetti
         showCompletionEffect = false // Reset completion flag
         stopAnimationTimer() // Ensure timer is stopped
+        resetAnimation() // 애니메이션 상태 초기화
     }
 
     func getScoreMessage() -> String {
