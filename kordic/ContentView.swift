@@ -30,6 +30,30 @@ struct ContentView: View {
     @AppStorage("userLevel") private var userLevel = 0
     @State private var showLevelBadge = false
     
+    // 애니메이션 단계 제어
+    @State private var animationStage = 0
+    
+    // 레벨 테스트 스택 애니메이션 제어
+    @State private var levelTestOffsetY: CGFloat = 0
+    @State private var basicsOffsetY: CGFloat = 0
+    @State private var reviewWordsOffsetY: CGFloat = 0
+    @State private var quizOffsetY: CGFloat = 0
+    
+    // 스케일 및 불투명도 제어
+    @State private var levelTestScale: CGFloat = 1.0
+    @State private var levelTestOpacity: Double = 1.0
+    @State private var basicsScale: CGFloat = 1.0
+    @State private var basicsOpacity: Double = 1.0
+    @State private var reviewWordsScale: CGFloat = 1.0
+    @State private var reviewWordsOpacity: Double = 1.0
+    @State private var quizScale: CGFloat = 1.0
+    @State private var quizOpacity: Double = 1.0
+    
+    // 새로운 위치의 레벨 테스트 컨트롤
+    @State private var showMovedLevelTest: Bool = false
+    @State private var movedLevelTestOpacity: Double = 0.0
+    @State private var movedLevelTestScale: CGFloat = 0.95
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -118,10 +142,6 @@ struct ContentView: View {
                                 )
                                 .padding(.bottom, 0)
                                 .id("basics1") // 식별자 추가
-                                .transition(.asymmetric(
-                                    insertion: .scale.combined(with: .opacity).animation(.spring(response: 0.6, dampingFraction: 0.7)),
-                                    removal: .opacity.animation(.easeOut)
-                                ))
                             }
                             .buttonStyle(PlainButtonStyle())
                             .disabled(!unlockBasics)
@@ -159,23 +179,26 @@ struct ContentView: View {
                             }
                             
                             // Level Test (이제 가장 아래로)
-                            NavigationLink(destination: LevelTestView()) {
-                                LearningCategoryView(
-                                    icon: "graduationcap.fill",
-                                    title: "Level Test".localized(),
-                                    subtitle: "",
-                                    progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
-                                    isLocked: false,
-                                    progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
-                                        1.0 : 
-                                        (levelTestProgress > 0 ? 
-                                         Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
-                                )
-                                .padding(.bottom, 0)
+                            if showMovedLevelTest {
+                                NavigationLink(destination: LevelTestView()) {
+                                    LearningCategoryView(
+                                        icon: "graduationcap.fill",
+                                        title: "Level Test".localized(),
+                                        subtitle: "",
+                                        progress: "\(levelTestProgress)/\(LevelTestView.totalQuestions)",
+                                        isLocked: false,
+                                        progressValue: levelTestProgress >= LevelTestView.totalQuestions ? 
+                                            1.0 : 
+                                            (levelTestProgress > 0 ? 
+                                             Float(levelTestProgress) / Float(LevelTestView.totalQuestions) : 0.0)
+                                    )
+                                    .padding(.bottom, 0)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .id("leveltest-bottom")
+                                .scaleEffect(movedLevelTestScale)
+                                .opacity(movedLevelTestOpacity)
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .id("leveltest-bottom") // 식별자 추가
-                            .transition(.move(edge: .bottom))
                         } else {
                             // 기존 순서 (레벨 테스트가 맨 위)
                             // Level Test
@@ -194,7 +217,10 @@ struct ContentView: View {
                                 .padding(.bottom, 0)
                             }
                             .buttonStyle(PlainButtonStyle())
-                            .id("leveltest-top") // 식별자 추가
+                            .id("leveltest-top")
+                            .offset(y: levelTestOffsetY)
+                            .scaleEffect(levelTestScale)
+                            .opacity(levelTestOpacity)
                             
                             // Basics 1
                             NavigationLink(destination: Basics1View()) {
@@ -214,6 +240,9 @@ struct ContentView: View {
                                 toastMessage = "Complete Level Test to unlock Basics 1".localized()
                                 showToastMessage()
                             }
+                            .offset(y: basicsOffsetY)
+                            .scaleEffect(basicsScale)
+                            .opacity(basicsOpacity)
                             
                             // Review Words
                             KoreanCharacterCategoryView(
@@ -227,6 +256,9 @@ struct ContentView: View {
                                 toastMessage = "Complete Level Test to unlock Review Words".localized()
                                 showToastMessage()
                             }
+                            .offset(y: reviewWordsOffsetY)
+                            .scaleEffect(reviewWordsScale)
+                            .opacity(reviewWordsOpacity)
                             
                             // Quiz
                             QuizCategoryView(
@@ -238,11 +270,12 @@ struct ContentView: View {
                                 toastMessage = "Complete Level Test to unlock Quiz".localized()
                                 showToastMessage()
                             }
+                            .offset(y: quizOffsetY)
+                            .scaleEffect(quizScale)
+                            .opacity(quizOpacity)
                         }
                     }
                     .padding(.horizontal)
-                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: moveTestDown)
-                    .animation(.spring(response: 0.6, dampingFraction: 0.6), value: unlockBasics)
                     
                     Spacer(minLength: 20)
                 }
@@ -290,51 +323,20 @@ struct ContentView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
+            // 초기 상태 설정
+            resetAnimationState()
+            
             // 이미 Basics1이 잠금 해제되었다면, moveTestDown도 true로 설정해야 함
             if unlockBasics && !moveTestDown {
                 moveTestDown = true
+                showMovedLevelTest = true
+                movedLevelTestOpacity = 1.0
+                movedLevelTestScale = 1.0
             }
             
             // 테스트가 완료되었지만 아직 애니메이션을 보여주지 않았다면
             if levelTestProgress >= LevelTestView.totalQuestions && !isAnimating && !unlockBasics && !moveTestDown {
-                // 약간의 지연 시간 후 애니메이션 시작
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    withAnimation(.easeInOut(duration: 1.2)) {
-                        moveTestDown = true
-                    }
-                    
-                    // 약간의 지연 후 잠금 해제 애니메이션
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
-                            unlockBasics = true
-                            levelTestCompleted = true
-                            
-                            // 레벨 설정 (점수에 따라)
-                            if levelTestScore == LevelTestView.totalQuestions {
-                                userLevel = 3 // 만점이면 레벨 3
-                            } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
-                                userLevel = 2 // 2/3 이상이면 레벨 2
-                            } else {
-                                userLevel = 1 // 기본 레벨 1
-                            }
-                            
-                            // 배지 표시 애니메이션 활성화
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                withAnimation {
-                                    showLevelBadge = true
-                                }
-                            }
-                        }
-                        
-                        // 잠금 해제 메시지 표시
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            toastMessage = "Basics 1 is now unlocked!".localized()
-                            showToastMessage()
-                        }
-                    }
-                    
-                    isAnimating = true
-                }
+                startSequentialAnimation()
             } else if levelTestCompleted && !showLevelBadge {
                 // 이미 테스트가 완료되었고 배지가 표시되지 않은 경우 즉시 표시
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -348,44 +350,8 @@ struct ContentView: View {
             NotificationCenter.default.addObserver(forName: NSNotification.Name("levelTestCompleted"), object: nil, queue: .main) { _ in
                 // 이미 애니메이션 중인지 확인
                 if !isAnimating && !unlockBasics && !moveTestDown {
-                    // 약간의 지연 시간 후 애니메이션 시작
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        withAnimation(.easeInOut(duration: 1.2)) {
-                            moveTestDown = true
-                        }
-                        
-                        // 약간의 지연 후 잠금 해제 애니메이션
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1)) {
-                                unlockBasics = true
-                                levelTestCompleted = true
-                                
-                                // 레벨 설정 (점수에 따라)
-                                if levelTestScore == LevelTestView.totalQuestions {
-                                    userLevel = 3 // 만점이면 레벨 3
-                                } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
-                                    userLevel = 2 // 2/3 이상이면 레벨 2
-                                } else {
-                                    userLevel = 1 // 기본 레벨 1
-                                }
-                                
-                                // 배지 표시 애니메이션 활성화
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    withAnimation {
-                                        showLevelBadge = true
-                                    }
-                                }
-                            }
-                            
-                            // 잠금 해제 메시지 표시
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                toastMessage = "Basics 1 is now unlocked!".localized()
-                                showToastMessage()
-                            }
-                        }
-                        
-                        isAnimating = true
-                    }
+                    resetAnimationState()
+                    startSequentialAnimation()
                 }
             }
         }
@@ -394,6 +360,158 @@ struct ContentView: View {
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name("levelTestCompleted"), object: nil)
         }
     }
+    
+    // 애니메이션 상태 초기화
+    func resetAnimationState() {
+        // 오프셋 초기화
+        levelTestOffsetY = 0
+        basicsOffsetY = 0
+        reviewWordsOffsetY = 0
+        quizOffsetY = 0
+        
+        // 스케일 및 불투명도 초기화
+        levelTestScale = 1.0
+        levelTestOpacity = 1.0
+        basicsScale = 1.0
+        basicsOpacity = 1.0
+        reviewWordsScale = 1.0
+        reviewWordsOpacity = 1.0
+        quizScale = 1.0
+        quizOpacity = 1.0
+        
+        // 새 위치의 레벨 테스트 초기화
+        movedLevelTestOpacity = 0.0
+        movedLevelTestScale = 0.95
+        showMovedLevelTest = false
+        
+        // 애니메이션 단계 초기화
+        animationStage = 0
+    }
+    
+    // 순차적 애니메이션 시작
+    func startSequentialAnimation() {
+        isAnimating = true
+        
+        // 각 항목의 높이와 딜레이
+        let itemHeight: CGFloat = 85
+        let baseAnimationDuration = 0.4
+        let delayBetweenItems = 0.15
+        
+        // 레벨 테스트가 아래로 내려가기 시작 (살짝 위로 올라갔다가 내려가는 효과)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                // 먼저 살짝 위로 튀어오르는 효과
+                levelTestOffsetY = -10
+            }
+            
+            // 그 다음 아래로 내려가기 시작
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: baseAnimationDuration + 0.3, dampingFraction: 0.65)) {
+                    levelTestOffsetY = itemHeight  // 한 칸 아래로
+                }
+                
+                // Basics1이 위로 올라오기 시작
+                DispatchQueue.main.asyncAfter(deadline: .now() + delayBetweenItems) {
+                    withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                        basicsOffsetY = -itemHeight  // 한 칸 위로
+                        basicsScale = 1.03  // 살짝 커졌다가
+                    }
+                    
+                    // 레벨 테스트가 한 칸 더 내려가고, Basics1의 스케일 정상화
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                            levelTestOffsetY = itemHeight * 2  // 두 칸 아래로
+                            basicsScale = 1.0  // 스케일 정상화
+                        }
+                        
+                        // Review Words가 위로 올라오기 시작
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delayBetweenItems) {
+                            withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                                reviewWordsOffsetY = -itemHeight  // 한 칸 위로
+                                reviewWordsScale = 1.03  // 살짝 커졌다가
+                            }
+                            
+                            // 레벨 테스트가 한 칸 더 내려가고, Review Words의 스케일 정상화
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                                    levelTestOffsetY = itemHeight * 3  // 세 칸 아래로
+                                    reviewWordsScale = 1.0  // 스케일 정상화
+                                }
+                                
+                                // Quiz가 위로 올라오기 시작
+                                DispatchQueue.main.asyncAfter(deadline: .now() + delayBetweenItems) {
+                                    withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                                        quizOffsetY = -itemHeight  // 한 칸 위로
+                                        quizScale = 1.03  // 살짝 커졌다가
+                                    }
+                                    
+                                    // 최종 위치로 모든 항목 정리
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        withAnimation(.spring(response: baseAnimationDuration, dampingFraction: 0.7)) {
+                                            quizScale = 1.0  // 스케일 정상화
+                                        }
+                                        
+                                        // 레벨 테스트 항목 서서히 사라지게
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            withAnimation(.easeOut(duration: 0.3)) {
+                                                levelTestOpacity = 0
+                                            }
+                                            
+                                            // 뷰 구조 변경 및 새 위치에 레벨 테스트 표시
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                // 뷰 구조 변경
+                                                moveTestDown = true
+                                                showMovedLevelTest = true
+                                                
+                                                // 새 위치의 레벨 테스트 서서히 나타나게
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                                        movedLevelTestOpacity = 1.0
+                                                        movedLevelTestScale = 1.0
+                                                    }
+                                                    
+                                                    // 약간의 지연 후 잠금 해제 애니메이션
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                        withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                                                            unlockBasics = true
+                                                            levelTestCompleted = true
+                                                            
+                                                            // 레벨 설정 (점수에 따라)
+                                                            if levelTestScore == LevelTestView.totalQuestions {
+                                                                userLevel = 3 // 만점이면 레벨 3
+                                                            } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
+                                                                userLevel = 2 // 2/3 이상이면 레벨 2
+                                                            } else {
+                                                                userLevel = 1 // 기본 레벨 1
+                                                            }
+                                                        }
+                                                        
+                                                        // 배지 표시 애니메이션 활성화
+                                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                            withAnimation {
+                                                                showLevelBadge = true
+                                                            }
+                                                            
+                                                            // 잠금 해제 메시지 표시
+                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                                                toastMessage = "Basics 1 is now unlocked!".localized()
+                                                                showToastMessage()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     
     // 토스트 메시지 표시 함수
     func showToastMessage() {
