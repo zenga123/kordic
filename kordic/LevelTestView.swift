@@ -46,6 +46,10 @@ struct LevelTestView: View {
     // --- Confetti State ---
     @State private var confetti: [ConfettiParticle] = []
     @State private var showCompletionEffect = false // Flag to trigger confetti on completion
+    
+    // --- 애니메이션 관련 State 변수 추가 ---
+    @State private var isAnimatingOut = false
+    @State private var animateComplete = false
 
     // --- Animation Timer ---
     @State private var animationTimer: Timer.TimerPublisher = Timer.publish(every: 1/60, on: .main, in: .common)
@@ -94,6 +98,8 @@ struct LevelTestView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
                     .padding(.bottom, 40) // Add space below title
+                    .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                    .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.0) : .none, value: isAnimatingOut)
 
                 // --- Main Content Area ---
                 if currentQuestionIndex < questions.count {
@@ -133,18 +139,27 @@ struct LevelTestView: View {
                         Text("Test Completed".localized())
                             .font(.title)
                             .fontWeight(.bold)
+                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.1) : .none, value: isAnimatingOut)
 
                         Text("Score: \(score)/\(questions.count)".localized())
                             .font(.title2)
+                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.2) : .none, value: isAnimatingOut)
 
                         Text(getScoreMessage())
                             .font(.headline)
                             .foregroundColor(.blue)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
+                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.3) : .none, value: isAnimatingOut)
                         
                         // "홈으로" 버튼
                         Button(action: {
+                            // 애니메이션 트리거
+                            isAnimatingOut = true
+                            
                             // 현재 진행 상황을 명시적으로 저장
                             UserDefaults.standard.set(currentQuestionIndex, forKey: "levelTestCurrentQuestionIndex")
                             UserDefaults.standard.set(score, forKey: "levelTestScore")
@@ -166,8 +181,11 @@ struct LevelTestView: View {
                             
                             UserDefaults.standard.synchronize() // 즉시 저장 강제
                             
-                            // 홈으로 돌아가기
-                            presentationMode.wrappedValue.dismiss()
+                            // 애니메이션이 완료된 후 홈으로 돌아가기
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                presentationMode.wrappedValue.dismiss()
+                                isAnimatingOut = false // 상태 초기화
+                            }
                         }) {
                             Text("Home".localized())
                                 .font(.headline)
@@ -178,6 +196,8 @@ struct LevelTestView: View {
                                 .cornerRadius(10)
                                 .padding(.horizontal)
                         }
+                        .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                        .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.4) : .none, value: isAnimatingOut)
                     }
                     .padding()
                     .onAppear {
@@ -230,6 +250,8 @@ struct LevelTestView: View {
                             .font(.headline)
                     }
                     .padding(.bottom, 40) // Bottom padding for the progress section
+                    .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
+                    .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.5) : .none, value: isAnimatingOut)
                 }
             } // End Main VStack
         } // End ZStack
