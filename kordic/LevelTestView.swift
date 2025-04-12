@@ -98,7 +98,7 @@ struct LevelTestView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
                     .padding(.bottom, 40) // Add space below title
-                    .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                    .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
                     .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.0) : .none, value: isAnimatingOut)
 
                 // --- Main Content Area ---
@@ -139,12 +139,12 @@ struct LevelTestView: View {
                         Text("Test Completed".localized())
                             .font(.title)
                             .fontWeight(.bold)
-                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
                             .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.1) : .none, value: isAnimatingOut)
 
                         Text("Score: \(score)/\(questions.count)".localized())
                             .font(.title2)
-                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
                             .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.2) : .none, value: isAnimatingOut)
 
                         Text(getScoreMessage())
@@ -152,7 +152,7 @@ struct LevelTestView: View {
                             .foregroundColor(.blue)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                            .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                            .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
                             .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.3) : .none, value: isAnimatingOut)
                         
                         // "홈으로" 버튼
@@ -183,6 +183,7 @@ struct LevelTestView: View {
                             
                             // 애니메이션이 완료된 후 홈으로 돌아가기
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                // 레벨테스트 화면만 닫히도록 수정
                                 presentationMode.wrappedValue.dismiss()
                                 isAnimatingOut = false // 상태 초기화
                             }
@@ -196,7 +197,7 @@ struct LevelTestView: View {
                                 .cornerRadius(10)
                                 .padding(.horizontal)
                         }
-                        .offset(y: isAnimatingOut ? -UIScreen.main.bounds.height : 0)
+                        .offset(y: isAnimatingOut ? UIScreen.main.bounds.height : 0)
                         .animation(isAnimatingOut ? .easeInOut(duration: 0.4).delay(0.4) : .none, value: isAnimatingOut)
                     }
                     .padding()
@@ -264,6 +265,9 @@ struct LevelTestView: View {
         .onDisappear {
             // Clean up timer when the view disappears permanently
             stopAnimationTimer()
+            
+            // 화면이 사라질 때 애니메이션 상태 초기화
+            isAnimatingOut = false
         }
     }
 
