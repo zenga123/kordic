@@ -159,7 +159,7 @@ struct Basics1View: View {
                         axis: (x: 0.0, y: 1.0, z: 0.0)
                     )
                     
-                    // 뒷면 (번역)
+                    // 뒤면 (번역)
                     VStack(spacing: 15) {
                         Text(translation.localized())
                             .font(.system(size: 28, weight: .bold))
