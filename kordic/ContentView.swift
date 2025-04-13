@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var progressManager: ModuleProgressManager
+
     @State private var showSettings = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("selectedLanguage") private var selectedLanguage = "English"
     @AppStorage("levelTestCurrentQuestionIndex") private var levelTestProgress = 0
     @AppStorage("levelTestScore") private var levelTestScore = 0
     @AppStorage("levelTestCompleted") private var levelTestCompleted = false
-    @State private var refreshID = UUID() // 화면 새로고침용 ID
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var toastOffset: CGFloat = 100 // 토스트가 화면 바깥에 있게 시작
@@ -53,6 +54,22 @@ struct ContentView: View {
     @State private var showMovedLevelTest: Bool = false
     @State private var movedLevelTestOpacity: Double = 0.0
     @State private var movedLevelTestScale: CGFloat = 0.95
+    
+    // Basics1 진행 상황 계산 (EnvironmentObject 사용)
+    private func getBasics1Progress() -> Float {
+        // Basics1의 모든 모듈의 진행 상황 계산
+        var totalProgress: Float = 0.0
+        let moduleCount = 5 // Basics1View에 정의된 모듈 수
+
+        for i in 0..<moduleCount {
+            // progressManager에서 진행 상황 가져오기
+            let progress = progressManager.getModuleProgress(i)
+            totalProgress += progress
+        }
+
+        // 평균 진행률 계산 (0.0~1.0)
+        return moduleCount > 0 ? totalProgress / Float(moduleCount) : 0.0
+    }
     
     var body: some View {
         NavigationView {
@@ -138,7 +155,7 @@ struct ContentView: View {
                                     subtitle: "",
                                     progress: "",
                                     isLocked: !unlockBasics,
-                                    progressValue: 0
+                                    progressValue: unlockBasics ? getBasics1Progress() : 0
                                 )
                                 .padding(.bottom, 0)
                                 .id("basics1") // 식별자 추가
@@ -281,12 +298,12 @@ struct ContentView: View {
                 }
                 .navigationBarHidden(true)
             }
-            .id(refreshID) // 고유 ID를 통해 뷰를 새로고침
             .sheet(isPresented: $showSettings) {
                 SettingsView(onLanguageChange: {
-                    // 언어 변경 시 화면 새로고침
-                    refreshID = UUID()
+                    // 언어 변경 시 화면 새로고침은 다른 방식 고려 필요 (예: EnvironmentObject 사용)
+                    // refreshID = UUID() // 제거
                 })
+                .environmentObject(progressManager) // SettingsView에도 주입
             }
             .background(isDarkMode ? Color.black : Color(red: 0.98, green: 0.98, blue: 0.98))
             .edgesIgnoringSafeArea(.bottom)
@@ -326,12 +343,29 @@ struct ContentView: View {
             // 초기 상태 설정
             resetAnimationState()
             
-            // 이미 Basics1이 잠금 해제되었다면, moveTestDown도 true로 설정해야 함
-            if unlockBasics && !moveTestDown {
+            // 레벨 테스트가 완료되었거나 Basics1이 이미 잠금 해제된 경우
+            if levelTestCompleted || levelTestProgress >= LevelTestView.totalQuestions || unlockBasics {
+                // 상태 업데이트
                 moveTestDown = true
                 showMovedLevelTest = true
                 movedLevelTestOpacity = 1.0
                 movedLevelTestScale = 1.0
+                
+                // Basics1 잠금 해제 확인
+                if !unlockBasics && (levelTestCompleted || levelTestProgress >= LevelTestView.totalQuestions) {
+                    unlockBasics = true
+                }
+                
+                // 레벨 설정 (아직 설정되지 않은 경우)
+                if userLevel == 0 && levelTestScore > 0 {
+                    if levelTestScore == LevelTestView.totalQuestions {
+                        userLevel = 3 // 만점이면 레벨 3
+                    } else if levelTestScore >= LevelTestView.totalQuestions * 2 / 3 {
+                        userLevel = 2 // 2/3 이상이면 레벨 2
+                    } else {
+                        userLevel = 1 // 기본 레벨 1
+                    }
+                }
             }
             
             // 테스트가 완료되었지만 아직 애니메이션을 보여주지 않았다면
@@ -346,7 +380,7 @@ struct ContentView: View {
                 }
             }
             
-            // 레벨 테스트 완료 알림 수신 설정
+            // 레벨 테스트 완료 알림 수신 설정 (유지)
             NotificationCenter.default.addObserver(forName: NSNotification.Name("levelTestCompleted"), object: nil, queue: .main) { _ in
                 // 이미 애니메이션 중인지 확인
                 if !isAnimating && !unlockBasics && !moveTestDown {
@@ -356,7 +390,7 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            // 화면이 사라질 때 옵저버 제거
+            // 레벨 테스트 완료 알림 해지 (유지)
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name("levelTestCompleted"), object: nil)
         }
     }
@@ -379,10 +413,7 @@ struct ContentView: View {
         quizScale = 1.0
         quizOpacity = 1.0
         
-        // 새 위치의 레벨 테스트 초기화
-        movedLevelTestOpacity = 0.0
-        movedLevelTestScale = 0.95
-        showMovedLevelTest = false
+        // 새 위치의 레벨 테스트 초기화 (여기서는 설정하지 않음, onAppear에서 설정)
         
         // 애니메이션 단계 초기화
         animationStage = 0
@@ -573,8 +604,4 @@ struct ContentView: View {
         toastWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5, execute: workItem)
     }
-}
-
-#Preview {
-    ContentView()
 }
