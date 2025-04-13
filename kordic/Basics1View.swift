@@ -536,197 +536,108 @@ struct Basics1View: View {
         ]
     }
     
+    // 메인 뷰
     var body: some View {
+        // NavigationView 제거
         ZStack {
+            // 배경색
+            (isDarkMode ? Color.black : Color(red: 0.96, green: 0.97, blue: 0.98))
+                .edgesIgnoringSafeArea(.all)
+
             // 메인 콘텐츠
             ScrollView {
-                VStack(spacing: 25) {
-                    Spacer()
-                        .frame(height: 20) // 네비게이션 바 아래 공간
-                    
-                    // 진행 상황 요약
-                    HStack(spacing: 20) {
-                        // 완료한 모듈 수
-                        VStack {
-                            Text("\(progressManager.getCompletedModulesCount())")
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.blue)
-                            
-                            Text("Completed".localized())
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
-                                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                        )
-                        
-                        // 전체 진행률
-                        VStack {
-                            Text("\(progressManager.calculateTotalProgress())%")
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.green)
-                            
-                            Text("Progress".localized())
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
-                                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                        )
-                        
-                        // 학습 스트릭
-                        VStack {
-                            Text("1")
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.orange)
-                            
-                            Text("Day Streak".localized())
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(isDarkMode ? Color(red: 0.15, green: 0.15, blue: 0.15) : Color.white)
-                                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                        )
-                    }
-                    .padding(.horizontal)
-                    
-                    // 모듈 목록 제목
+                VStack(alignment: .leading, spacing: 25) {
+                    // 헤더
                     HStack {
-                        Text("Learning Modules".localized())
-                            .font(.title3)
+                        Text("Basics 1".localized())
+                            .font(.largeTitle)
                             .fontWeight(.bold)
-                            .foregroundColor(isDarkMode ? .white : Color(red: 0.2, green: 0.2, blue: 0.3))
-                        
+                            .foregroundColor(isDarkMode ? .white : Color(red: 0.1, green: 0.1, blue: 0.15))
                         Spacer()
+                        // Button(action: { // X 버튼 삭제 시작
+                        //     presentationMode.wrappedValue.dismiss()
+                        // }) {
+                        //     Image(systemName: "xmark.circle.fill")
+                        //         .font(.title2)
+                        //         .foregroundColor(.gray)
+                        // } // X 버튼 삭제 끝
                     }
                     .padding(.horizontal)
-                    .padding(.top, 10)
-                    
+                    .padding(.top, 20)
+
                     // 모듈 목록
                     VStack(spacing: 15) {
-                        ForEach(0..<modules.count, id: \.self) { index in
-                            ModuleCardView(module: modules[index]) {
-                                handleModuleTap(index)
+                        ForEach(Array(modules.enumerated()), id: \.offset) { index, module in
+                            ModuleCardView(module: module) {
+                                // 모듈 선택 시 액션
+                                if !module.isLocked {
+                                    self.selectedModuleIndex = index
+                                    self.showLessonView = true // 모달 표시 상태를 true로 설정
+                                } else {
+                                    showToastMessage("This module is locked.".localized())
+                                }
                             }
                         }
                     }
                     .padding(.horizontal)
-                    .id(refreshID) // 강제 새로고침을 위한 ID
+
+                    Spacer() // 콘텐츠를 위로 밀어 올림
                 }
-                .padding(.bottom, 30)
+                .padding(.bottom, 30) // 스크롤 시 하단 여백
             }
-            .background(isDarkMode ? Color.black : Color(red: 0.98, green: 0.98, blue: 0.98))
-            .edgesIgnoringSafeArea(.bottom)
-            .navigationBarTitle("Basics 1", displayMode: .large)
-            // 핵심 변경 - 네비게이션 백 버튼 숨기지 않음
-            .navigationBarBackButtonHidden(false)
-            .onAppear {
-                // 화면 갱신 트리거
-                refreshID = UUID()
+            // .navigationBarHidden(true) // NavigationView가 없으므로 불필요 // 이전에 추가된 주석 제거
+            .id(refreshID) // 뷰 강제 새로고침 트리거
+            .onReceive(progressManager.$refreshTrigger) { _ in
+                 print("Basics1View: Received refresh trigger") // 디버깅 로그 추가
+                self.refreshID = UUID() // 상태 변경으로 뷰 새로고침
             }
-            .onChange(of: progressManager.refreshTrigger) { _ in
-                // 상태 관리자의 트리거 변화에 따라 화면 갱신
-                refreshID = UUID()
-            }
-            
-            // 모달이 표시된 경우 반투명 오버레이
-            if showLessonView {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
-                    .zIndex(1)
-                    .onTapGesture {
-                        // 백그라운드 탭 비활성화
-                    }
-                
-                ModuleLessonView(
-                    moduleTitle: modules[selectedModuleIndex].title,
-                    moduleIndex: selectedModuleIndex,
-                    onComplete: { index in
-                        // 직접 완료 처리
-                        progressManager.completeModule(index)
-                    },
-                    onDismiss: {
-                        // 핵심 변경 - 명시적 닫기 함수
-                        withAnimation {
-                            showLessonView = false
-                        }
-                    }
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(isDarkMode ? Color.black : Color(red: 0.98, green: 0.98, blue: 0.98))
-                )
-                .transition(.move(edge: .bottom))
-                .zIndex(2)
+
+
+            // 토스트 메시지 뷰
+            if showToast {
+                VStack {
+                    Spacer() // 토스트 메시지를 하단에 위치시킴
+                    Text(toastMessage)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.75))
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .shadow(radius: 5)
+                        .offset(y: toastOffset) // 애니메이션을 위한 오프셋
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .padding(.bottom, 30) // 하단 여백
+                .zIndex(1) // 다른 뷰 위에 표시
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: showLessonView)
-        .overlay(
-            GeometryReader { geometry in
-                VStack {
-                    Spacer()
-                    
-                    // 토스트 메시지
-                    HStack {
-                        Image(systemName: "lock.fill")
-                            .foregroundColor(.white)
-                            .padding(.trailing, 5)
-                        Text(toastMessage)
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .medium))
-                        Spacer()
-                    }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(red: 0.3, green: 0.5, blue: 0.9))
-                            .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
-                    .opacity(showToast ? 1 : 0)
-                    .offset(y: toastOffset)
+        .environmentObject(progressManager) // 전역 상태 관리자 주입
+        // 모달 프레젠테이션 - ModuleLessonView를 모달로 띄움
+        .sheet(isPresented: $showLessonView) {
+            ModuleLessonView(
+                moduleTitle: modules[selectedModuleIndex].title,
+                moduleIndex: selectedModuleIndex,
+                onComplete: { index in
+                    // 직접 완료 처리
+                    progressManager.completeModule(index)
+                },
+                onDismiss: {
+                    // 모달 닫기
+                    showLessonView = false
                 }
-            }
-        )
-    }
-    
-    // 모듈 탭 처리 함수
-    func handleModuleTap(_ index: Int) {
-        let module = modules[index]
-        if module.isLocked {
-            toastMessage = "Complete previous module to unlock"
-            showToastMessage()
-        } else {
-            selectedModuleIndex = index
-            showLessonView = true
+            )
         }
     }
     
     // 토스트 메시지 표시 함수
-    func showToastMessage() {
+    func showToastMessage(_ message: String) {
         // 이전 작업이 있다면 취소
         toastWorkItem?.cancel()
         
         // 이미 토스트가 보이고 있는 경우
         if showToast {
             // 기존 토스트 애니메이션 중단하고 새 메시지로 바로 교체
-            toastMessage = toastMessage
+            self.toastMessage = message
             
             // 새로운 사라짐 타이머 설정
             let newWorkItem = DispatchWorkItem {
@@ -751,6 +662,7 @@ struct Basics1View: View {
         }
         
         // 새로운 토스트 표시 (이전에 표시되지 않았던 경우)
+        self.toastMessage = message
         showToast = true
         
         // 바닥에서 올라오는 애니메이션
