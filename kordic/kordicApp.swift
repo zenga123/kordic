@@ -111,9 +111,14 @@ extension String {
 
 @main
 struct kordicApp: App {
+    // 상태 관리자 인스턴스 생성
+    @StateObject private var progressManager = ModuleProgressManager.shared
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                // ContentView 및 하위 뷰에서 접근할 수 있도록 environmentObject 주입
+                .environmentObject(progressManager)
         }
     }
 }
